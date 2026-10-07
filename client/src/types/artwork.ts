@@ -1,0 +1,19 @@
+export const ARTWORK_TYPES = [
+  'Painting',
+  'Sculpture',
+  'Photography',
+  'Digital',
+  'Drawing',
+] as const
+
+export type ArtworkType = (typeof ARTWORK_TYPES)[number]
+
+export interface Artwork {
+  id: string
+  title: string
+  artist: string
+  type: ArtworkType
+  price: number
+  isAvailable: boolean
+  imageUrl: string
+}
