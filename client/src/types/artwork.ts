@@ -1,10 +1,4 @@
-export const ARTWORK_TYPES = [
-  'Painting',
-  'Sculpture',
-  'Photography',
-  'Digital',
-  'Drawing',
-] as const
+export const ARTWORK_TYPES = ['Painting', 'Sculpture', 'Photography', 'Digital', 'Drawing'] as const
 
 export type ArtworkType = (typeof ARTWORK_TYPES)[number]
 
@@ -17,3 +11,5 @@ export interface Artwork {
   isAvailable: boolean
   imageUrl: string
 }
+
+export type SortOrder = 'none' | 'price-asc' | 'price-desc'
