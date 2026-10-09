@@ -6,6 +6,7 @@ import {
   deleteArtwork,
   uploadArtworkImage,
   getArtists,
+  updateArtwork,
 } from './artwork.api'
 
 import type { Artwork, ArtworkQuery } from './artwork.types'
@@ -29,6 +30,18 @@ export function useCreateArtwork() {
 
   return useMutation({
     mutationFn: (artwork: Omit<Artwork, 'id'>) => createArtwork(artwork),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: artworkKeys.all })
+    },
+  })
+}
+
+export function useUpdateArtwork() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, artwork }: { id: string; artwork: Partial<Omit<Artwork, 'id'>> }) =>
+      updateArtwork(id, artwork),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: artworkKeys.all })
     },

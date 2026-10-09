@@ -20,6 +20,13 @@ export const createArtwork = async (artwork: Omit<Artwork, 'id'>): Promise<Artwo
   const { data } = await apiClient.post<Artwork>('/artworks', artwork)
   return data
 }
+export const updateArtwork = async (
+  id: string,
+  artwork: Partial<Omit<Artwork, 'id'>>,
+): Promise<Artwork> => {
+  const { data } = await apiClient.patch<Artwork>(`/artworks/${id}`, artwork)
+  return data
+}
 
 export const deleteArtwork = async (id: string): Promise<void> => {
   await apiClient.delete(`/artworks/${id}`)

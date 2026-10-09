@@ -12,6 +12,7 @@ import { ARTWORK_TYPES, type Artwork } from '@/api/artwork.types'
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024
 
 interface ArtworkFormProps {
+  artwork?: Artwork
   onSubmit: (artwork: Omit<Artwork, 'id'>) => void
   onCancel: () => void
   isSubmitting?: boolean
@@ -35,11 +36,13 @@ function Field({ label, error, children }: { label: string; error?: string; chil
 }
 
 export function ArtworkForm({
+  artwork,
   onSubmit,
   onCancel,
   isSubmitting = false,
   errorMessage,
 }: ArtworkFormProps) {
+  const isEditing = Boolean(artwork)
   const {
     register,
     control,
@@ -50,12 +53,12 @@ export function ArtworkForm({
   } = useForm<ArtworkFormValues>({
     resolver: zodResolver(artworkSchema),
     defaultValues: {
-      title: '',
-      artist: '',
-      type: '',
-      price: '',
-      availability: true,
-      imageUrl: '',
+      title: artwork?.title,
+      artist: artwork?.artist,
+      type: artwork?.type || '',
+      price: String(Number(artwork?.price)),
+      availability: artwork?.availability,
+      imageUrl: artwork?.imageUrl,
     },
   })
   const uploadImage = useUploadArtworkImage()
@@ -119,9 +122,7 @@ export function ArtworkForm({
         onClick={(e) => e.stopPropagation()}
         className="ml-auto flex h-full w-full max-w-md flex-col gap-4 overflow-y-auto bg-white p-6 shadow-xl"
       >
-        <h2 id="artwork-form-title" className="text-xl font-bold">
-          Add New Artwork
-        </h2>
+        {isEditing ? 'Edit Artwork' : 'Add New Artwork'}
         <div className="flex flex-col gap-1">
           <input
             ref={fileInputRef}
@@ -252,7 +253,13 @@ export function ArtworkForm({
             Cancel
           </Button>
           <Button type="submit" disabled={isLoading}>
-            {isSubmitting ? 'Adding...' : 'Add artwork'}
+            {isEditing
+              ? isSubmitting
+                ? 'Saving...'
+                : 'Save changes'
+              : isSubmitting
+                ? 'Adding...'
+                : 'Add artwork'}
           </Button>
         </div>
       </form>

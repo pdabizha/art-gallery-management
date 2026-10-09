@@ -7,22 +7,43 @@ import { GalleryToolbar } from './components/GalleryToolbar'
 import { Footer } from './components/layout/Footer'
 import { Header } from './components/layout/Header'
 import { useArtworkFilters } from './hooks/useArtworkFilters'
-import { useCreateArtwork, useDeleteArtwork, useGetArtworks } from './api/artwork.queries'
+import {
+  useCreateArtwork,
+  useDeleteArtwork,
+  useGetArtworks,
+  useUpdateArtwork,
+} from './api/artwork.queries'
 import type { Artwork } from './api/artwork.types'
 
 function App() {
   const filters = useArtworkFilters()
   const { data: artworks = [], isLoading, isError } = useGetArtworks(filters.query)
   const createArtwork = useCreateArtwork()
+  const updateArtwork = useUpdateArtwork()
   const deleteArtwork = useDeleteArtwork()
 
   const [isFormOpen, setIsFormOpen] = useState(false)
+  const [artworkToEdit, setArtworkToEdit] = useState<Artwork | null>(null)
   const [artworkToDelete, setArtworkToDelete] = useState<Artwork | null>(null)
 
   const handleAdd = (data: Omit<Artwork, 'id'>) => {
     createArtwork.mutate(data, {
       onSuccess: () => setIsFormOpen(false),
     })
+  }
+
+  const handleOpenEdit = (artwork: Artwork) => {
+    updateArtwork.reset() // убираем ошибку от прошлой попытки
+    setArtworkToEdit(artwork)
+  }
+
+  const handleEdit = (data: Omit<Artwork, 'id'>) => {
+    if (!artworkToEdit) return
+
+    updateArtwork.mutate(
+      { id: artworkToEdit.id, artwork: data },
+      { onSuccess: () => setArtworkToEdit(null) },
+    )
   }
 
   const handleConfirmDelete = () => {
@@ -56,6 +77,7 @@ function App() {
           <ArtworkGrid
             artworks={artworks}
             isGalleryEmpty={artworks.length === 0 && !filters.hasActiveFilters}
+            onEdit={handleOpenEdit}
             onDelete={setArtworkToDelete}
           />
         )}
@@ -69,6 +91,16 @@ function App() {
           onCancel={() => setIsFormOpen(false)}
           isSubmitting={createArtwork.isPending}
           errorMessage={createArtwork.isError ? 'Could not add artwork' : undefined}
+        />
+      )}
+
+      {artworkToEdit && (
+        <ArtworkForm
+          artwork={artworkToEdit}
+          onSubmit={handleEdit}
+          onCancel={() => setArtworkToEdit(null)}
+          isSubmitting={updateArtwork.isPending}
+          errorMessage={updateArtwork.isError ? 'Could not save changes' : undefined}
         />
       )}
 
