@@ -1,5 +1,4 @@
-import { ARTWORK_TYPES } from '../types/artwork'
-import type { Artwork, ArtworkType, SortOrder } from '../types/artwork'
+import { ARTWORK_TYPES, type ArtworkType, type SortOrder } from "@/api/artwork.types";
 
 export const ALL = 'all'
 export type AllOr<T> = T | typeof ALL
@@ -22,32 +21,3 @@ export const TYPE_OPTIONS = [
   { label: 'All types', value: ALL },
   ...ARTWORK_TYPES.map((t) => ({ label: t, value: t })),
 ]
-
-export function getArtists(artworks: Artwork[]): string[] {
-  return [...new Set(artworks.map((a) => a.artist))].sort((a, b) => a.localeCompare(b))
-}
-
-interface VisibleOptions {
-  search: string
-  sortOrder: SortOrder
-  artist: string
-  type: AllOr<ArtworkType>
-}
-
-export function getVisibleArtworks(
-  artworks: Artwork[],
-  { search, sortOrder, artist, type }: VisibleOptions,
-): Artwork[] {
-  const query = search.trim().toLowerCase()
-
-  const filtered = artworks.filter((a) => {
-    if (artist !== ALL && a.artist !== artist) return false
-    if (type !== ALL && a.type !== type) return false
-    if (!query) return true
-    return a.title.toLowerCase().includes(query) || a.artist.toLowerCase().includes(query)
-  })
-
-  if (sortOrder === 'price-asc') return [...filtered].sort((a, b) => a.price - b.price)
-  if (sortOrder === 'price-desc') return [...filtered].sort((a, b) => b.price - a.price)
-  return filtered
-}

@@ -11,7 +11,14 @@ export const artworkSchema = z.object({
 
   artist: z.string().trim().min(1, 'Artist is required'),
   type: z.string().min(1, 'Select a type'),
-  price: z.string().trim().min(1, 'Price is required'),
+  price: z
+    .string()
+    .trim()
+    .min(1, 'Price is required')
+    .refine(
+      (value) => Number.isFinite(Number(value)) && Number(value) >= 0,
+      'Price must be a valid non-negative number',
+    ),
   availability: z.boolean(),
   imageUrl: z.string().min(1, 'Photo is required'),
 })

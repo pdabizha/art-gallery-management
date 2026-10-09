@@ -5,10 +5,9 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Select } from './ui/select'
-import { ARTWORK_TYPES } from '../types/artwork'
-import type { Artwork } from '../types/artwork'
 import { artworkSchema, type ArtworkFormValues } from '@/schemas/addArtwork.schema'
 import { useUploadArtworkImage } from '@/api/artwork.queries'
+import { ARTWORK_TYPES, type Artwork } from '@/api/artwork.types'
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024
 
@@ -252,7 +251,7 @@ export function ArtworkForm({
           <Button variant="secondary" type="button" onClick={onCancel} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button type="submit" disabled={isLoading || isSubmitting}>
+          <Button type="submit" disabled={isLoading}>
             {isSubmitting ? 'Adding...' : 'Add artwork'}
           </Button>
         </div>

@@ -1,5 +1,4 @@
 import { Select as SelectPrimitive } from '@base-ui/react/select'
-// import { CheckIcon, ChevronDownIcon } from 'lucide-react'
 import { AngleDown, Check } from 'flowbite-react-icons/outline'
 
 import { cn } from '@/lib/utils'

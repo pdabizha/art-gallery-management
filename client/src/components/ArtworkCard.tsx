@@ -1,6 +1,5 @@
+import type { Artwork } from '@/api/artwork.types'
 import type { KeyboardEvent } from 'react'
-import { PLACEHOLDER_IMAGE } from '../data/initialArtworks'
-import type { Artwork } from '../types/artwork'
 
 interface ArtworkCardProps {
   artwork: Artwork
@@ -35,10 +34,6 @@ export function ArtworkCard({ artwork, selectable = false, onSelect }: ArtworkCa
         <img
           src={imageUrl}
           alt={title}
-          onError={(e) => {
-            e.currentTarget.onerror = null
-            e.currentTarget.src = PLACEHOLDER_IMAGE
-          }}
           className="aspect-4/3 w-full rounded-lg object-cover"
         />
         {selectable && (

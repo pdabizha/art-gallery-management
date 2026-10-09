@@ -8,14 +8,13 @@ import { Footer } from './components/layout/Footer'
 import { Header } from './components/layout/Header'
 import { useArtworkFilters } from './hooks/useArtworkFilters'
 import { useCreateArtwork, useDeleteArtwork, useGetArtworks } from './api/artwork.queries'
-import type { Artwork } from './types/artwork'
+import type { Artwork } from './api/artwork.types'
 
 function App() {
-  const { data: artworks = [], isLoading, isError } = useGetArtworks()
+  const filters = useArtworkFilters()
+  const { data: artworks = [], isLoading, isError } = useGetArtworks(filters.query)
   const createArtwork = useCreateArtwork()
   const deleteArtwork = useDeleteArtwork()
-
-  const filters = useArtworkFilters(artworks)
 
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isRemoveMode, setIsRemoveMode] = useState(false)
@@ -72,8 +71,8 @@ function App() {
           </p>
         ) : (
           <ArtworkGrid
-            artworks={filters.visibleArtworks}
-            isGalleryEmpty={artworks.length === 0}
+            artworks={artworks}
+            isGalleryEmpty={artworks.length === 0 && !filters.hasActiveFilters}
             selectable={isRemoveMode}
             onSelect={setArtworkToDelete}
           />

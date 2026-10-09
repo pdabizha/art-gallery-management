@@ -8,9 +8,11 @@ import {
   Delete,
   UseInterceptors,
   UploadedFile,
+  Query,
 } from '@nestjs/common';
 import { ArtworksService } from './artworks.service.js';
 import { CreateArtworkDto } from './dto/create-artwork.dto.js';
+import { FindArtworksQueryDto } from './dto/find-artworks-query.dto.js';
 import { UpdateArtworkDto } from './dto/update-artwork.dto.js';
 import { FileInterceptor } from '@nestjs/platform-express';
 
@@ -24,8 +26,13 @@ export class ArtworksController {
   }
 
   @Get()
-  findAll() {
-    return this.artworksService.findAll();
+  findAll(@Query() query: FindArtworksQueryDto) {
+    return this.artworksService.findAll(query);
+  }
+
+  @Get('artists')
+  findArtists() {
+    return this.artworksService.findArtists();
   }
 
   @Get(':id')

@@ -7,6 +7,7 @@ import { v2 as cloudinary } from 'cloudinary';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateArtworkDto } from './dto/create-artwork.dto.js';
+import { FindArtworksQueryDto } from './dto/find-artworks-query.dto.js';
 import { UpdateArtworkDto } from './dto/update-artwork.dto.js';
 import { Artwork } from './entities/artwork.entity.js';
 
@@ -22,8 +23,42 @@ export class ArtworksService {
     return this.artworksRepository.save(artwork);
   }
 
-  findAll() {
-    return this.artworksRepository.find();
+  findAll({ search, artist, type, sort }: FindArtworksQueryDto = {}) {
+    const query = this.artworksRepository.createQueryBuilder('artwork');
+
+    if (search) {
+      const escaped = search.replace(/[\\%_]/g, '\\$&');
+      query.andWhere('artwork.title ILIKE :search', {
+        search: `%${escaped}%`,
+      });
+    }
+
+    if (artist) {
+      query.andWhere('artwork.artist = :artist', { artist });
+    }
+
+    if (type) {
+      query.andWhere('artwork.type = :type', { type });
+    }
+
+    if (sort) {
+      query
+        .orderBy('artwork.price', sort === 'price-asc' ? 'ASC' : 'DESC')
+        .addOrderBy('artwork.id', 'ASC');
+    }
+
+    return query.getMany();
+  }
+
+  async findArtists() {
+    const rows = await this.artworksRepository
+      .createQueryBuilder('artwork')
+      .select('artwork.artist', 'artist')
+      .distinct(true)
+      .orderBy('artwork.artist', 'ASC')
+      .getRawMany<{ artist: string }>();
+
+    return rows.map((row) => row.artist);
   }
 
   async findOne(id: string) {

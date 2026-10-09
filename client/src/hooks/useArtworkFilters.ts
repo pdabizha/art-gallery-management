@@ -1,28 +1,34 @@
-import { useEffect, useMemo, useState } from 'react'
-import type { Artwork, ArtworkType, SortOrder } from '../types/artwork'
-import { ALL, getArtists, getVisibleArtworks, parseSortOrder, parseType } from '../utils/artworks'
+import { useEffect, useState } from 'react'
+import type { ArtworkQuery, ArtworkType, SortOrder } from '../api/artwork.types'
+import { ALL, parseSortOrder, parseType } from '../utils/artworks'
 import type { AllOr } from '../utils/artworks'
+import { useGetArtists } from '../api/artwork.queries'
 import { useDebounce } from './useDebounce'
 
 const readParam = (key: string) => new URLSearchParams(window.location.search).get(key) ?? ''
 
-export function useArtworkFilters(artworks: Artwork[]) {
+export function useArtworkFilters() {
   const [sortOrder, setSortOrder] = useState<SortOrder>(() => parseSortOrder(readParam('sort')))
   const [searchInput, setSearchInput] = useState(() => readParam('search'))
   const [selectedArtist, setArtist] = useState(() => readParam('artist') || ALL)
   const [type, setType] = useState<AllOr<ArtworkType>>(() => parseType(readParam('type')))
+
   const debouncedSearch = useDebounce(searchInput, 400)
 
-  const artists = useMemo(() => getArtists(artworks), [artworks])
+  const { data: artists = [], isSuccess: artistsLoaded } = useGetArtists()
 
-  const artist = selectedArtist === ALL || artists.includes(selectedArtist) ? selectedArtist : ALL
+  const artist =
+    artistsLoaded && selectedArtist !== ALL && !artists.includes(selectedArtist)
+      ? ALL
+      : selectedArtist
+
+  const search = debouncedSearch.trim()
 
   useEffect(() => {
     const params = new URLSearchParams()
-    const query = debouncedSearch.trim()
 
     if (sortOrder !== 'none') params.set('sort', sortOrder)
-    if (query) params.set('search', query)
+    if (search) params.set('search', search)
     if (artist !== ALL) params.set('artist', artist)
     if (type !== ALL) params.set('type', type)
 
@@ -32,12 +38,14 @@ export function useArtworkFilters(artworks: Artwork[]) {
       '',
       queryString ? `?${queryString}` : window.location.pathname,
     )
-  }, [sortOrder, debouncedSearch, artist, type])
+  }, [sortOrder, search, artist, type])
 
-  const visibleArtworks = useMemo(
-    () => getVisibleArtworks(artworks, { search: debouncedSearch, sortOrder, artist, type }),
-    [artworks, debouncedSearch, sortOrder, artist, type],
-  )
+  const query: ArtworkQuery = {
+    search: search || undefined,
+    artist: artist !== ALL ? artist : undefined,
+    type: type !== ALL ? type : undefined,
+    sort: sortOrder !== 'none' ? sortOrder : undefined,
+  }
 
   const hasActiveFilters = artist !== ALL || type !== ALL || searchInput.trim() !== ''
 
@@ -57,7 +65,7 @@ export function useArtworkFilters(artworks: Artwork[]) {
     type,
     setType,
     artists,
-    visibleArtworks,
+    query,
     hasActiveFilters,
     resetFilters,
   }

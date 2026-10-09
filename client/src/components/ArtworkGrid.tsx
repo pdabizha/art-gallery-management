@@ -1,5 +1,5 @@
+import type { Artwork } from '@/api/artwork.types'
 import { ArtworkCard } from './ArtworkCard'
-import type { Artwork } from '../types/artwork'
 
 interface ArtworkGridProps {
   artworks: Artwork[]

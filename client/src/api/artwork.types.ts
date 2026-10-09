@@ -13,3 +13,10 @@ export interface Artwork {
 }
 
 export type SortOrder = 'none' | 'price-asc' | 'price-desc'
+
+export interface ArtworkQuery {
+  search?: string
+  artist?: string
+  type?: ArtworkType
+  sort?: Exclude<SortOrder, 'none'>
+}
