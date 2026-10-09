@@ -7,11 +7,14 @@ import { GalleryToolbar } from './components/GalleryToolbar'
 import { Footer } from './components/layout/Footer'
 import { Header } from './components/layout/Header'
 import { useArtworkFilters } from './hooks/useArtworkFilters'
-import { useArtworks } from './hooks/useArtworks'
+import { useCreateArtwork, useDeleteArtwork, useGetArtworks } from './api/artwork.queries'
 import type { Artwork } from './types/artwork'
 
 function App() {
-  const { artworks, addArtwork, removeArtwork } = useArtworks()
+  const { data: artworks = [], isLoading, isError } = useGetArtworks()
+  const createArtwork = useCreateArtwork()
+  const deleteArtwork = useDeleteArtwork()
+
   const filters = useArtworkFilters(artworks)
 
   const [isFormOpen, setIsFormOpen] = useState(false)
@@ -19,15 +22,20 @@ function App() {
   const [artworkToDelete, setArtworkToDelete] = useState<Artwork | null>(null)
 
   const handleAdd = (data: Omit<Artwork, 'id'>) => {
-    addArtwork(data)
-    setIsFormOpen(false)
+    createArtwork.mutate(data, {
+      onSuccess: () => setIsFormOpen(false),
+    })
   }
 
   const handleConfirmDelete = () => {
     if (!artworkToDelete) return
-    removeArtwork(artworkToDelete.id)
-    setArtworkToDelete(null)
-    setIsRemoveMode(false)
+
+    deleteArtwork.mutate(artworkToDelete.id, {
+      onSuccess: () => {
+        setArtworkToDelete(null)
+        setIsRemoveMode(false)
+      },
+    })
   }
 
   return (
@@ -56,17 +64,32 @@ function App() {
           <p className="text-sm text-red-600">Select an artwork you want to remove.</p>
         )}
 
-        <ArtworkGrid
-          artworks={filters.visibleArtworks}
-          isGalleryEmpty={artworks.length === 0}
-          selectable={isRemoveMode}
-          onSelect={setArtworkToDelete}
-        />
+        {isLoading ? (
+          <p className="py-10 text-center text-gray-500">Loading...</p>
+        ) : isError ? (
+          <p role="alert" className="py-10 text-center text-red-600">
+            Could not load artworks. Is the server running?
+          </p>
+        ) : (
+          <ArtworkGrid
+            artworks={filters.visibleArtworks}
+            isGalleryEmpty={artworks.length === 0}
+            selectable={isRemoveMode}
+            onSelect={setArtworkToDelete}
+          />
+        )}
       </main>
 
       <Footer />
 
-      {isFormOpen && <ArtworkForm onSubmit={handleAdd} onCancel={() => setIsFormOpen(false)} />}
+      {isFormOpen && (
+        <ArtworkForm
+          onSubmit={handleAdd}
+          onCancel={() => setIsFormOpen(false)}
+          isSubmitting={createArtwork.isPending}
+          errorMessage={createArtwork.isError ? 'Could not add artwork' : undefined}
+        />
+      )}
 
       {artworkToDelete && (
         <ConfirmDialog
@@ -75,6 +98,7 @@ function App() {
           confirmLabel="Delete"
           onConfirm={handleConfirmDelete}
           onCancel={() => setArtworkToDelete(null)}
+          isLoading={deleteArtwork.isPending}
         />
       )}
     </div>

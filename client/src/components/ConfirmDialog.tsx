@@ -7,6 +7,7 @@ interface ConfirmDialogProps {
   confirmLabel?: string
   onConfirm: () => void
   onCancel: () => void
+  isLoading?: boolean
 }
 
 export function ConfirmDialog({
@@ -15,6 +16,7 @@ export function ConfirmDialog({
   confirmLabel = 'Confirm',
   onConfirm,
   onCancel,
+  isLoading,
 }: ConfirmDialogProps) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -47,7 +49,7 @@ export function ConfirmDialog({
           <Button variant="secondary" type="button" onClick={onCancel}>
             Cancel
           </Button>
-          <Button type="button" onClick={onConfirm} autoFocus>
+          <Button type="button" onClick={onConfirm} autoFocus disabled={isLoading}>
             {confirmLabel}
           </Button>
         </div>

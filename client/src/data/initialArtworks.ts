@@ -9,7 +9,7 @@ export const initialArtworks: Artwork[] = [
     artist: 'Alex Johnson',
     type: 'Painting',
     price: 5500,
-    isAvailable: true,
+    availability: true,
     imageUrl: '/images/abstract-vibrance.jpg',
   },
   {
@@ -18,7 +18,7 @@ export const initialArtworks: Artwork[] = [
     artist: 'Maria Gonzalez',
     type: 'Painting',
     price: 3500,
-    isAvailable: true,
+    availability: true,
     imageUrl: '/images/tranquil-lake.jpg',
   },
   {
@@ -27,7 +27,7 @@ export const initialArtworks: Artwork[] = [
     artist: 'Liam Smith',
     type: 'Digital',
     price: 11000,
-    isAvailable: false,
+    availability: false,
     imageUrl: '/images/geometric-harmony.jpg',
   },
   {
@@ -36,7 +36,7 @@ export const initialArtworks: Artwork[] = [
     artist: 'Sofia Rossi',
     type: 'Sculpture',
     price: 8200,
-    isAvailable: true,
+    availability: true,
     imageUrl: '/images/sculpture.jpg',
   },
 ]

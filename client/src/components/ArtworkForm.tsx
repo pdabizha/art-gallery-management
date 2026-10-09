@@ -1,18 +1,22 @@
-import { useEffect } from 'react'
-import type { ReactNode } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import type { ChangeEvent, ReactNode } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Select } from './ui/select'
-import { PLACEHOLDER_IMAGE } from '../data/initialArtworks'
 import { ARTWORK_TYPES } from '../types/artwork'
 import type { Artwork } from '../types/artwork'
 import { artworkSchema, type ArtworkFormValues } from '@/schemas/addArtwork.schema'
+import { useUploadArtworkImage } from '@/api/artwork.queries'
+
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024
 
 interface ArtworkFormProps {
   onSubmit: (artwork: Omit<Artwork, 'id'>) => void
   onCancel: () => void
+  isSubmitting?: boolean
+  errorMessage?: string
 }
 
 function Field({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
@@ -31,11 +35,18 @@ function Field({ label, error, children }: { label: string; error?: string; chil
   )
 }
 
-export function ArtworkForm({ onSubmit, onCancel }: ArtworkFormProps) {
+export function ArtworkForm({
+  onSubmit,
+  onCancel,
+  isSubmitting = false,
+  errorMessage,
+}: ArtworkFormProps) {
   const {
     register,
     control,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<ArtworkFormValues>({
     resolver: zodResolver(artworkSchema),
@@ -44,9 +55,43 @@ export function ArtworkForm({ onSubmit, onCancel }: ArtworkFormProps) {
       artist: '',
       type: '',
       price: '',
-      isAvailable: true,
+      availability: true,
+      imageUrl: '',
     },
   })
+  const uploadImage = useUploadArtworkImage()
+  const isLoading = uploadImage.isPending || isSubmitting
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+
+  const imageUrl = watch('imageUrl')
+
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = '' // чтобы можно было выбрать тот же файл повторно
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      setUploadError('Please select an image file')
+      return
+    }
+    if (file.size > MAX_IMAGE_SIZE) {
+      setUploadError('Image must be smaller than 5 MB')
+      return
+    }
+
+    setUploadError(null)
+    uploadImage.mutate(file, {
+      onSuccess: ({ imageUrl }) =>
+        setValue('imageUrl', imageUrl, { shouldDirty: true, shouldValidate: true }),
+      onError: () => setUploadError('Could not upload the image. Please try again.'),
+    })
+  }
+
+  const handleRemoveImage = () => {
+    setValue('imageUrl', '', { shouldDirty: true })
+    setUploadError(null)
+  }
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -61,7 +106,6 @@ export function ArtworkForm({ onSubmit, onCancel }: ArtworkFormProps) {
       ...data,
       type: data.type as Artwork['type'],
       price: Number(data.price),
-      imageUrl: PLACEHOLDER_IMAGE,
     })
   }
 
@@ -80,12 +124,70 @@ export function ArtworkForm({ onSubmit, onCancel }: ArtworkFormProps) {
           Add New Artwork
         </h2>
         <div className="flex flex-col gap-1">
-          <img
-            src={PLACEHOLDER_IMAGE}
-            alt="Default artwork preview"
-            className="aspect-4/3 w-full rounded-lg object-cover"
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="hidden"
           />
-          <p className="text-xs text-gray-400">A default image will be used for this artwork</p>
+
+          {imageUrl ? (
+            <div className="flex flex-col gap-2">
+              <div className="relative">
+                <img
+                  src={imageUrl}
+                  alt="Artwork preview"
+                  className={`aspect-4/3 w-full rounded-lg object-cover ${
+                    uploadImage.isPending ? 'opacity-50' : ''
+                  }`}
+                />
+                {uploadImage.isPending && (
+                  <div className="absolute inset-0 flex items-center justify-center text-sm font-medium">
+                    Uploading...
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  className="w-fit"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadImage.isPending}
+                >
+                  Change photo
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="w-fit"
+                  onClick={handleRemoveImage}
+                  disabled={uploadImage.isPending}
+                >
+                  Remove
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadImage.isPending}
+              aria-invalid={!!errors.imageUrl || undefined}
+              className="flex aspect-4/3 w-full cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-gray-300 text-sm text-gray-500 transition-colors outline-none hover:border-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-neutral-400 disabled:cursor-not-allowed disabled:opacity-60 aria-invalid:border-red-500 aria-invalid:text-red-600"
+            >
+              <span className="text-base font-medium">
+                {uploadImage.isPending ? 'Uploading...' : 'Upload photo'}
+              </span>
+              <span className="text-xs">Click to choose an image (up to 5 MB)</span>
+            </button>
+          )}
+
+          {(uploadError || errors.imageUrl) && (
+            <p role="alert" className="text-xs text-red-600">
+              {uploadError ?? errors.imageUrl?.message}
+            </p>
+          )}
         </div>
 
         <Field label="Title" error={errors.title?.message}>
@@ -136,15 +238,23 @@ export function ArtworkForm({ onSubmit, onCancel }: ArtworkFormProps) {
         </Field>
 
         <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" {...register('isAvailable')} className="size-4 accent-black" />
+          <input type="checkbox" {...register('availability')} className="size-4 accent-black" />
           Available for sale (uncheck for exhibition only)
         </label>
 
+        {errorMessage && (
+          <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+            {errorMessage}
+          </p>
+        )}
+
         <div className="flex justify-end gap-2">
-          <Button variant="secondary" type="button">
+          <Button variant="secondary" type="button" onClick={onCancel} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button type="submit">Add artwork</Button>
+          <Button type="submit" disabled={isLoading || isSubmitting}>
+            {isSubmitting ? 'Adding...' : 'Add artwork'}
+          </Button>
         </div>
       </form>
     </div>
