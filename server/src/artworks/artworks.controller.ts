@@ -15,10 +15,14 @@ import { CreateArtworkDto } from './dto/create-artwork.dto.js';
 import { FindArtworksQueryDto } from './dto/find-artworks-query.dto.js';
 import { UpdateArtworkDto } from './dto/update-artwork.dto.js';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ImageUploadService } from './image-upload.service.js';
 
 @Controller('artworks')
 export class ArtworksController {
-  constructor(private readonly artworksService: ArtworksService) {}
+  constructor(
+    private readonly artworksService: ArtworksService,
+    private readonly imageUploadService: ImageUploadService,
+  ) {}
 
   @Post()
   create(@Body() createArtworkDto: CreateArtworkDto) {
@@ -59,6 +63,6 @@ export class ArtworksController {
     }),
   )
   uploadImage(@UploadedFile() file: Express.Multer.File) {
-    return this.artworksService.uploadImage(file);
+    return this.imageUploadService.upload(file);
   }
 }
