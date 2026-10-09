@@ -2,7 +2,7 @@
 
 A small full-stack app for managing an art gallery: browse, search, filter, sort, add and remove artworks.
 
-(Demo:)[https://art-gallery-management-swart.vercel.app]
+[Demo:](https://art-gallery-management-swart.vercel.app)
 
 ## Features
 
