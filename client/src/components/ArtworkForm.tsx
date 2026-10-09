@@ -53,12 +53,12 @@ export function ArtworkForm({
   } = useForm<ArtworkFormValues>({
     resolver: zodResolver(artworkSchema),
     defaultValues: {
-      title: artwork?.title,
-      artist: artwork?.artist,
-      type: artwork?.type || '',
-      price: String(Number(artwork?.price)),
-      availability: artwork?.availability,
-      imageUrl: artwork?.imageUrl,
+      title: artwork?.title ?? '',
+      artist: artwork?.artist ?? '',
+      type: artwork?.type ?? '',
+      price: artwork ? String(Number(artwork.price)) : '',
+      availability: artwork?.availability ?? true,
+      imageUrl: artwork?.imageUrl ?? '',
     },
   })
   const uploadImage = useUploadArtworkImage()
@@ -122,7 +122,9 @@ export function ArtworkForm({
         onClick={(e) => e.stopPropagation()}
         className="ml-auto flex h-full w-full max-w-md flex-col gap-4 overflow-y-auto bg-white p-6 shadow-xl"
       >
-        {isEditing ? 'Edit Artwork' : 'Add New Artwork'}
+        <h2 id="artwork-form-title" className="text-xl font-bold">
+          {isEditing ? 'Edit Artwork' : 'Add New Artwork'}
+        </h2>
         <div className="flex flex-col gap-1">
           <input
             ref={fileInputRef}
@@ -230,10 +232,10 @@ export function ArtworkForm({
             {...register('price')}
             aria-invalid={!!errors.price}
             type="number"
-            inputMode="decimal"
-            min="0"
-            step="0.01"
-            placeholder="0.00"
+            inputMode="numeric"
+            min="1"
+            step="100"
+            placeholder="100"
           />
         </Field>
 

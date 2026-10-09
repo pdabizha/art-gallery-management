@@ -15,10 +15,7 @@ export const artworkSchema = z.object({
     .string()
     .trim()
     .min(1, 'Price is required')
-    .refine(
-      (value) => Number.isFinite(Number(value)) && Number(value) >= 0,
-      'Price must be a valid non-negative number',
-    ),
+    .regex(/^\d+$/, 'Enter a whole number of 0 or more'),
   availability: z.boolean(),
   imageUrl: z.string().min(1, 'Photo is required'),
 })

@@ -1,6 +1,6 @@
 import {
   IsBoolean,
-  IsNumber,
+  IsInt,
   IsOptional,
   IsString,
   IsUrl,
@@ -17,8 +17,8 @@ export class CreateArtworkDto {
   @IsString()
   type: string;
 
-  @IsNumber()
-  @Min(0)
+  @IsInt()
+  @Min(1)
   price: number;
 
   @IsOptional()
