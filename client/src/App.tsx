@@ -17,7 +17,6 @@ function App() {
   const deleteArtwork = useDeleteArtwork()
 
   const [isFormOpen, setIsFormOpen] = useState(false)
-  const [isRemoveMode, setIsRemoveMode] = useState(false)
   const [artworkToDelete, setArtworkToDelete] = useState<Artwork | null>(null)
 
   const handleAdd = (data: Omit<Artwork, 'id'>) => {
@@ -30,10 +29,7 @@ function App() {
     if (!artworkToDelete) return
 
     deleteArtwork.mutate(artworkToDelete.id, {
-      onSuccess: () => {
-        setArtworkToDelete(null)
-        setIsRemoveMode(false)
-      },
+      onSuccess: () => setArtworkToDelete(null),
     })
   }
 
@@ -46,22 +42,9 @@ function App() {
 
         <GalleryToolbar filters={filters} />
 
-        <div className="flex gap-3">
-          <Button className="w-fit" onClick={() => setIsFormOpen(true)} disabled={isRemoveMode}>
-            Add New Artwork
-          </Button>
-          <Button
-            className="w-fit"
-            onClick={() => setIsRemoveMode((prev) => !prev)}
-            disabled={artworks.length === 0}
-          >
-            {isRemoveMode ? 'Cancel Removal' : 'Remove Artwork'}
-          </Button>
-        </div>
-
-        {isRemoveMode && (
-          <p className="text-sm text-red-600">Select an artwork you want to remove.</p>
-        )}
+        <Button className="w-fit" onClick={() => setIsFormOpen(true)}>
+          Add New Artwork
+        </Button>
 
         {isLoading ? (
           <p className="py-10 text-center text-gray-500">Loading...</p>
@@ -73,8 +56,7 @@ function App() {
           <ArtworkGrid
             artworks={artworks}
             isGalleryEmpty={artworks.length === 0 && !filters.hasActiveFilters}
-            selectable={isRemoveMode}
-            onSelect={setArtworkToDelete}
+            onDelete={setArtworkToDelete}
           />
         )}
       </main>
